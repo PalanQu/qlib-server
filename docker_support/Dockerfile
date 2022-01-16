@@ -14,7 +14,15 @@ ARG FLASK_SERVER_HOST=$DEFAULT_HOST
 ARG QLIB_CODE=/code
 ARG SERVER_DIR=$QLIB_CODE/qlib-server
 
+RUN mkdir -p /root/.pip
+
+COPY ./docker_support/sources.list /etc/apt/sources.list
+COPY ./docker_support/pip.conf /root/.pip/pip.conf
+
 WORKDIR $SERVER_DIR
+RUN mkdir $SERVER_DIR/wait-for-it
+COPY ./docker_support/wait-for-it.sh $SERVER_DIR/wait-for-it
+
 COPY . .
 
 RUN apt-get --allow-releaseinfo-change update\
@@ -22,9 +30,8 @@ RUN apt-get --allow-releaseinfo-change update\
     && apt-get clean\
     && rm -rf /var/lib/apt/lists/*\
     && pip install cython numpy -U\
-    && pip install git+https://github.com/microsoft/qlib\
+    && pip install pyqlib -U\
     && cd $SERVER_DIR\
-    && python setup.py install\
     && pip install -U python-engineio==3.11.2 python-socketio==4.4.0 flask-socketio==3.1.2\
     && /bin/sed -i "s@<QLIB_DATA>@$QLIB_DATA@g" config_template.yaml\
     && /bin/sed -i "s@<QUEUE_HOST>@$QUEUE_HOST@g" config_template.yaml\
@@ -35,8 +42,7 @@ RUN apt-get --allow-releaseinfo-change update\
     && /bin/sed -i "s@<REDIS_HOST>@$REDIS_HOST@g" config_template.yaml\
     && /bin/sed -i "s@<REDIS_PORT>@$REDIS_PORT@g" config_template.yaml\
     && /bin/sed -i "s@<REDIS_DB>@$REDIS_DB@g" config_template.yaml\
-    && /bin/sed -i "s@<FLASK_SERVER_HOST>@$FLASK_SERVER_HOST@g" config_template.yaml\
-    && git clone https://github.com/vishnubob/wait-for-it.git
+    && /bin/sed -i "s@<FLASK_SERVER_HOST>@$FLASK_SERVER_HOST@g" config_template.yaml
 
 EXPOSE 9710
 CMD ["python", "main.py", "-c", "config_template.yaml"]

@@ -29,7 +29,7 @@ RUN apt-get --allow-releaseinfo-change update\
     && apt-get install -y g++\
     && apt-get clean\
     && rm -rf /var/lib/apt/lists/*\
-    && pip install cython numpy -U\
+    && pip install cython numpy pika eventlet gevent -U\
     && pip install pyqlib -U\
     && cd $SERVER_DIR\
     && pip install -U python-engineio==3.11.2 python-socketio==4.4.0 flask-socketio==3.1.2\
